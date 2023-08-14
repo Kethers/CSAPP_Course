@@ -24,7 +24,7 @@ Second, create a new file answer.txt as input strings for bomb phases and pass i
 
 then `run answer.txt` and it hits the breakpoint 1:
 
-![image-20230811134644560](.\imgs\1_input_param_phase_1.png)
+![1_input_param_phase_1](./imgs/1_input_param_phase_1.png)
 
 From the assembly code we can see what happen here:
 
@@ -42,11 +42,11 @@ We can inspect the value of `%rax` and it is exactly the first line of answer.tx
 
 Then use `stepi` to enter the `phase_1`, below shows the entry code of it:
 
-![image-20230811135355728](.\imgs\1_phase1_entry.png)
+![1_phase1_entry](./imgs/1_phase1_entry.png)
 
 It pass something to `%esi` and we don't know what it is yet. But we can see then it calls `string_not_equal` func, let's step into it and see what happens:
 
-![image-20230811135640462](D:\MyCareerFileStroage\UniversityCourses\CMU 15-213 CSAPP\Labs\2_BombLab\imgs\1_entry_strings_not_equal.png)
+![1_entry_strings_not_equal](/\imgs/1_entry_strings_not_equal.png)
 
 From the function name we know that it's calling `string_length` to calculate the length of two strings and then compare these lengths. 
 
@@ -203,7 +203,7 @@ s: 7	--> ' 7 G W g w
 
 然后在内存`0x6032d0`处存在这样一个Node数组（连续的Node节点），同时这些Node也组成一个链表。
 
-![6_NodeArrayBegin](.\imgs\6_NodeArrayBegin.png)
+![6_NodeArrayBegin](./imgs/6_NodeArrayBegin.png)
 
 之后存在这样一个循环，循环每次将`targetNode`链表从起点开始前进`newInput[i]-1`步，将得到的链表节点的地址赋值给`targetAddr[i]`。假设循环完成后，`targetAddr`数组中链表地址代表的节点是node3, node4, node5, node1, node 2, node 6，然后下一个循环就是将原本的链表修改为3->4->5->1->2->6的顺序。修改完成后检查新链表的`val`值，要求其是降序排列。翻译成C语言代码如下：
 
