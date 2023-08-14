@@ -46,7 +46,7 @@ Then use `stepi` to enter the `phase_1`, below shows the entry code of it:
 
 It pass something to `%esi` and we don't know what it is yet. But we can see then it calls `string_not_equal` func, let's step into it and see what happens:
 
-![1_entry_strings_not_equal](/\imgs/1_entry_strings_not_equal.png)
+![1_entry_strings_not_equal](./imgs/1_entry_strings_not_equal.png)
 
 From the function name we know that it's calling `string_length` to calculate the length of two strings and then compare these lengths. 
 
