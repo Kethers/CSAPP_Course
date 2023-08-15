@@ -63,7 +63,7 @@ It is easy to check the answer since the length of the sentence is same as the r
 
 ## Phase 2
 
-找到1个`scanf`函数，根据其前面一个`mov`指令应该可以确定这个指令的内容是`scanf`函数的第一个形参format，对其用`x /s`查看可知道是`"%d %d %d %d %d %d"`，所以这一次一行需要输入6个数字，之后的比较容易看出，取第一个数为a，然后每次a=a+a，再将这个数与下一个数做比较，因此这一行的输入要求是1起始q=2的6个数的等比数列。
+It's easy to find a `scanf` function, before which lies a `mov` instruction copying something from an address to register. Use `x/s` cmd to examine the addr and result shows "%d %d %d %d %d %d", so this is the 'format' parameter of `scanf` and it needs six integers as input. After that there's a comparison that pick up the previous number, then double it and compare it with next number. The bomb would explode if not equals. Thus we have the answer:
 
 ```shell
 1 2 4 8 16 32
@@ -73,21 +73,22 @@ It is easy to check the answer since the length of the sentence is same as the r
 
 ## Phase 3
 
-与Phase 2类似容易知道要求输入2个数字
-对于输入的第1个数字，根据如下无符号大于比较可知，输入的数据范围是[0, 7]，否则就炸弹爆炸。
+Similar to Phase 2, it's easy to know that it needs 2 integers as input.
+
+For the first integer of our input, there's a unsigned less or equal comparison shown below that limits the range of first integer as [0, 7], otherwise the bomb explodes.
 
 ```assembly
 compl $0x7, 0x8(%rsp)
 ja 0x400fad
 ```
 
-同时该数字会用于间接跳转`jmpq`指令，具体是`jmpq addr(, %rax, 8)`，其中`%rax`的值就是我们输入的第1个数字，取出[addr+8*%rax]地址的内容，跳转到这个内容指向的地址，可以通过如下命令查看该addr附近的内容：
+Meanwhile, the first integer will be used for indirect jump instruction `jmpq addr(, %rax, 8)`. The value of `%rax` is our first integer. It takes [add + 8 * %rax] as addr and pick the content of addr from memory, then jump to where the content indicates. We can use below cmd to examine the contents next to addr:
 
 ```shell
 x/8gx addr
 ```
 
-最终根据跳转地址可以知道，是在做一些数字比较，因此只需要保证跳转的位置和要求的数字一样就行，具体有如下可选的8个输入：
+After examining, we know that it's doing some numeric comparisons. The program needs our second number same as the destination value. Below lies 8 optional input:
 
 ```shell
 0 207
@@ -104,11 +105,11 @@ x/8gx addr
 
 ## Phase 4
 
-与Phase 2类似容易知道要求输入2个数字
+Similar to Phase 2, it's easy to know that it needs 2 integers as input.
 
-对第二个数字，硬性要求是0；对第一个数字，要求其范围在[0, 14]之间，然后传给`int fun4(int val, int min, int max)`函数进行处理，其中min=0，max=14，并且要求fun4的返回值==0，因此关键就是弄清楚fun4()做了什么。
+For the second number, it requires it to be zero. For the first number, its range lies in [0, 14] and will be passed to `int fun4(int val, int min, int max)` when min=0 and max=14, meanwhile the return value should be 0. Consequently, we need to figure out what does `fun4` do
 
-翻译后代码如下：
+Below lies the C code translate from assembly:
 
 ```c
 int fun4(int val, int min, int max)
@@ -120,8 +121,8 @@ int fun4(int val, int min, int max)
     tmp >>= 31;	// tmp = 0
     res += tmp;
     res >>= 1;	// res = (max - min) / 2
-    tmp = res + min;	// tmp = (min + max) / 2, 防溢出
-    汇编翻译后的源代码如上，似乎等价于下面的2行
+    tmp = res + min;	// tmp = (min + max) / 2, in case of overflow
+    Original translated code lies above, the should be equivalent to below
     */
     int res;
     int mid = min + (max - min) / 2;
@@ -145,7 +146,7 @@ int fun4(int val, int min, int max)
 }
 ```
 
-可知fun4是在做递归二分查找，而为了使最终递归返回值为0，那么`mid < val`这个语句就不能被满足。即递归过程中，应当只允许`mid>=val`，在最后一层递归时`mid == val`，其它层均`mid > val`。因此，输入的第一个数字必须<=7。之后只需要对[0, 7]一个个穷举就能得出所有符合条件的解如下：
+From the code we know that it's doing binary search recursively. For the purpose of making the return value as 0, the `mid < val` branch must not be executed, which means during recursion only `mid >= val` is permitted, iff at last recursion `mid == val`. Thus the first input must <= 7, and then we just exhaust all possibility in [0, 7] to get all solutions:
 
 ```shell
 7 0
@@ -158,7 +159,7 @@ int fun4(int val, int min, int max)
 
 ## Phase 5
 
-输入一个长度为6的字符串，然后在循环中对其每个字符进行处理后与"flyers"字符串进行比较，只有当处理后的结果=="flyers"时才算成功。核心代码翻译后大致如下：
+Take a string whose length is 6 as input, then in loop do something on each char. After the loop compare the string with "flyers", equality means successfully defused. Core code translated as below:
 
 ```c
 char* sentence = "maduiersnfotvbylSo you think you can stop the bomb with ctrl-c, do you?";		// strlen(sentence) = 71
@@ -182,9 +183,7 @@ void phase_5(char* input)
 int strings_not_equal(char* a, char* b);	// return 1 if equals, else return 0
 ```
 
-容易知道，要去使用输入字符对应的ascii码的低4位(0~15)作为索引，然后从`sentence`字符串中取出单个字符替换原字符，使得最终结果为"flyers"。
-
-因此可选输入为：
+From the code we know that it takes low 4 bits of input char as index (so the range is [0, 15]) to pick letter up from `sentence` to finally make up the "flyers". Below lie the optional inputs:
 
 ```shell
 f: 9 	--> ) 9 Y i y
@@ -199,13 +198,13 @@ s: 7	--> ' 7 G W g w
 
 ## Phase 6
 
-要求输入6个整数，每个数的取值范围是[1, 6]，之后会在一个二层循环内做判断，目的是要求这6个数两两互不相等（唯一，不重复）。之后对于每个输入的数`input[i]`，令`newInput[i] = 7 - input[i];`。
+Input requires 6 integers and each one range in [1, 6]. In a nested loop, it judges whether each number is unique (i.e. each one unequals to each other). After that for each number `input[i]` makes it to be `7-input[i]`, i.e. `newInput[i] = 7 - input[i]`.
 
-然后在内存`0x6032d0`处存在这样一个Node数组（连续的Node节点），同时这些Node也组成一个链表。
+Then at 0x6032d0 of memory lies a "Node" array. At the meanwhile these nodes in array compose a linked list.
 
 ![6_NodeArrayBegin](./imgs/6_NodeArrayBegin.png)
 
-之后存在这样一个循环，循环每次将`targetNode`链表从起点开始前进`newInput[i]-1`步，将得到的链表节点的地址赋值给`targetAddr[i]`。假设循环完成后，`targetAddr`数组中链表地址代表的节点是node3, node4, node5, node1, node 2, node 6，然后下一个循环就是将原本的链表修改为3->4->5->1->2->6的顺序。修改完成后检查新链表的`val`值，要求其是降序排列。翻译成C语言代码如下：
+Then there's a loop. In each loop from the beginning of `targetNode` linked list, step forward`newInput[i]-1` times to get a node. Assign the addr of node to `targetAddr[i]`. When loop completes, **assume** the `targetAddr` array represents [node3, node4, node5, node1, node 2, node 6]. In next loop it modifies the original "Node" linked list to be 3 -> 4 -> 5 -> 1 -> 2 -> 6. After the modification, we examine the value of each node in new linked list and requires it to be descending. Below lies the C code translation:
 
 ```c
 struct Node
@@ -244,15 +243,13 @@ targetAddr[5]->next = 0;
 for (int i = 5; i > 0; i--)
 {
     rax = addr->next;
-    if (addr->val < rax->val)	// 要求新链表的val降序排列
+    if (addr->val < rax->val)	// descending rank
         explode_bomb();
     addr++;
 }
 ```
 
-由上述分析可知，前进`newInput[i] - 1`步实际上就决定了新链表的顺序。
-
-由此可得最终结果如下：
+From the analysis above, "step forward `newInput[i] - 1` times" de facto determines the sequence of new linked list. Finally we have the answer:
 
 ```c
 newInput - 1 			--> 2 3 4 5 0 1
@@ -260,3 +257,6 @@ newInput 				--> 3 4 5 6 1 2
 input = 7 - newInput 	--> 4 3 2 1 6 5    
 ```
 
+
+
+Now all phases are passed and bomb is defused.
