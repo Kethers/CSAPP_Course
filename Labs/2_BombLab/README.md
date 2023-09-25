@@ -63,7 +63,7 @@ It is easy to check the answer since the length of the sentence is same as the r
 
 ## Phase 2
 
-It's easy to find a `scanf` function, before which lies a `mov` instruction copying something from an address to register. Use `x/s` cmd to examine the addr and result shows "%d %d %d %d %d %d", so this is the 'format' parameter of `scanf` and it needs six integers as input. After that there's a comparison that pick up the previous number, then double it and compare it with next number. The bomb would explode if not equals. Thus we have the answer:
+It's easy to find a `sscanf` function, before which lies a `mov` instruction copying something from an address to register. Use `x/s` cmd to examine the addr and result shows "%d %d %d %d %d %d", so this is the 'format' parameter of `sscanf` and it needs six integers as input. After that there's a comparison that pick up the previous number, then double it and compare it with next number. The bomb would explode if not equals. Thus we have the answer:
 
 ```shell
 1 2 4 8 16 32

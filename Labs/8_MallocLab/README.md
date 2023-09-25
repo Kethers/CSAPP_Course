@@ -91,7 +91,8 @@ In this blog it says that when required blocks is bigger than 64B, we can place 
 
 ## Note
 
-My segregate free list implementation use ***payload size*** instead of block size as different size classes.
+1. My segregate free list implementation use ***payload size*** instead of block size as different size classes.
+2. The lab tutorial and handout are designed at the beginning of 2000s. From the makefile we know that it is compiled with `-m32` option so it’s a 32-bit program. Consequently, best practice is to use the `SIZE_T_SIZE` macro to align the header and footer.
 
 
 
