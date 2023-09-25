@@ -1,0 +1,4 @@
+#pragma once
+
+#define MAX_CACHE_SIZE 1049000
+#define MAX_OBJECT_SIZE 102400
