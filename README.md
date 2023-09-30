@@ -22,6 +22,6 @@ The slides are taken from CMU website ([15-213/15-513/14-513 Introduction to Com
 - [x] 8. Malloc Lab
 - [x] 9. Proxy Lab
 
-The 4 and 6 labs are not introduced and assigned in the video course and are book-exclusive. Maybe one day I will finish them ~~(or never)~~.
+The 4th and 6th labs are not introduced and assigned in the video course and are book-exclusive. Maybe one day I will finish them ~~(or never)~~.
 
-The solution and README are in the Labs/No_XLab folder. The README within each solved lab folder records my thinking when solving and some resources to reference.
+The solution and README are in the Labs/\{LabNum_LabName\} folder. The README within each solved lab folder records my thought of solving steps, and some resources to reference.
